@@ -157,16 +157,20 @@ namespace de4dot.code.renamer.asmmodules {
 		public IEnumerable<InterfaceMethodInfo> AllInfos => interfaceMethods.Values;
 
 		public void InitializeFrom(InterfaceMethodInfos other, GenericInstSig git) {
-			foreach (var pair in other.interfaceMethods) {
-				var oldTypeInfo = pair.Value.IFace;
-				var newTypeInfo = new TypeInfo(oldTypeInfo, git);
-				var oldKey = oldTypeInfo.typeRef;
-				var newKey = newTypeInfo.typeRef;
+			try{
+				foreach (var pair in other.interfaceMethods) {
+					var oldTypeInfo = pair.Value.IFace;
+					var newTypeInfo = new TypeInfo(oldTypeInfo, git);
+					var oldKey = oldTypeInfo.typeRef;
+					var newKey = newTypeInfo.typeRef;
 
-				var newMethodsInfo = new InterfaceMethodInfo(newTypeInfo, other.interfaceMethods[oldKey]);
-				if (interfaceMethods.ContainsKey(newKey))
-					newMethodsInfo.Merge(interfaceMethods[newKey]);
-				interfaceMethods[newKey] = newMethodsInfo;
+					var newMethodsInfo = new InterfaceMethodInfo(newTypeInfo, other.interfaceMethods[oldKey]);
+					if (interfaceMethods.ContainsKey(newKey))
+						newMethodsInfo.Merge(interfaceMethods[newKey]);
+					interfaceMethods[newKey] = newMethodsInfo;
+				}
+			} catch(Exception _) {
+				return;
 			}
 		}
 
@@ -383,7 +387,10 @@ namespace de4dot.code.renamer.asmmodules {
 		void InitializeInterfaces(TypeInfo typeInfo) {
 			var git = typeInfo.typeRef.TryGetGenericInstSig();
 			interfaceMethodInfos.InitializeFrom(typeInfo.typeDef.interfaceMethodInfos, git);
-			foreach (var info in typeInfo.typeDef.allImplementedInterfaces.Keys) {
+
+			TypeInfo[] keys = new TypeInfo[typeInfo.typeDef.allImplementedInterfaces.Keys.Count];
+			typeInfo.typeDef.allImplementedInterfaces.Keys.CopyTo(keys, 0);
+			foreach (var info in keys) {
 				var newTypeInfo = new TypeInfo(info, git);
 				allImplementedInterfaces[newTypeInfo] = true;
 			}
